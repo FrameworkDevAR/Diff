@@ -66,8 +66,9 @@
     --remove-color: oklch(0.55 0.19 25);
     --remove-soft: oklch(0.65 0.2 25 / 0.11);
     --remove-mark: oklch(0.65 0.2 25 / 0.3);
-    --change-color: oklch(0.58 0.14 70);
-    --change-soft: oklch(0.75 0.15 70 / 0.16);
+    --change-color: oklch(0.52 0.14 245);
+    --change-soft: oklch(0.65 0.16 245 / 0.13);
+    --change-mark: oklch(0.65 0.16 245 / 0.34);
 
     --string-color: oklch(0.5 0.12 250);
     --number-color: oklch(0.55 0.16 300);
@@ -105,8 +106,9 @@
     --remove-color: oklch(0.75 0.17 25);
     --remove-soft: oklch(0.65 0.2 25 / 0.16);
     --remove-mark: oklch(0.65 0.2 25 / 0.38);
-    --change-color: oklch(0.8 0.14 70);
-    --change-soft: oklch(0.75 0.15 70 / 0.18);
+    --change-color: oklch(0.78 0.12 245);
+    --change-soft: oklch(0.65 0.16 245 / 0.18);
+    --change-mark: oklch(0.65 0.16 245 / 0.4);
 
     --string-color: oklch(0.78 0.1 250);
     --number-color: oklch(0.78 0.13 300);

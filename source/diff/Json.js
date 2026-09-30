@@ -2,6 +2,10 @@ import diffSequence from "./Sequence.js";
 
 
 
+// How much two items of a list have to share to be read as one that changed
+const MIN_ALIKE = 0.3;
+
+
 /**
  * Compares two JSON values by what they hold rather than by how they are
  * written, and returns the tree of the differences with the counts of what
@@ -150,28 +154,51 @@ function compareArrays(oldValue, newValue) {
     const result = [];
     let   run    = null;
 
+    // An item taken out is compared with the item put in that is most like
+    // it, when the two share enough, so an object that changed reads as one
+    // that changed and not as one gone and another come. The rest go in the
+    // order they sit in, the ones put in before the ones taken out
     const closeRun = () => {
         if (!run) {
             return;
         }
-        const total = Math.max(run.removed.length, run.added.length);
-        for (let i = 0; i < total; i += 1) {
-            const oldIndex = run.removed[i];
-            const newIndex = run.added[i];
-            if (oldIndex !== undefined && newIndex !== undefined &&
-                kindOf(oldValue[oldIndex]) !== "value" && kindOf(oldValue[oldIndex]) === kindOf(newValue[newIndex])
-            ) {
+        const pairs = new Map();
+        const taken = new Set();
+        for (const oldIndex of run.removed) {
+            let best = { newIndex : -1, score : 0 };
+            for (const newIndex of run.added) {
+                if (!taken.has(newIndex)) {
+                    const score = similarity(oldValue[oldIndex], newValue[newIndex]);
+                    if (score > best.score) {
+                        best = { newIndex, score };
+                    }
+                }
+            }
+            if (best.score >= MIN_ALIKE) {
+                pairs.set(best.newIndex, oldIndex);
+                taken.add(best.newIndex);
+            }
+        }
+
+        const items = [];
+        for (const newIndex of run.added) {
+            const oldIndex = pairs.get(newIndex);
+            if (oldIndex !== undefined) {
                 const node = compareValues(`[${newIndex}]`, oldValue[oldIndex], newValue[newIndex]);
                 node.oldIndex = oldIndex;
-                result.push(node);
-                continue;
+                items.push({ index : newIndex, order : 0, node });
+            } else {
+                items.push({ index : newIndex, order : 0, node : createLeaf(`[${newIndex}]`, "added", newValue[newIndex]) });
             }
-            if (oldIndex !== undefined) {
-                result.push(createLeaf(`[${oldIndex}]`, "removed", oldValue[oldIndex]));
+        }
+        for (const oldIndex of run.removed) {
+            if (![ ...pairs.values() ].includes(oldIndex)) {
+                items.push({ index : oldIndex, order : 1, node : createLeaf(`[${oldIndex}]`, "removed", oldValue[oldIndex]) });
             }
-            if (newIndex !== undefined) {
-                result.push(createLeaf(`[${newIndex}]`, "added", newValue[newIndex]));
-            }
+        }
+        items.sort((a, b) => a.index - b.index || a.order - b.order);
+        for (const item of items) {
+            result.push(item.node);
         }
         run = null;
     };
@@ -196,27 +223,58 @@ function compareArrays(oldValue, newValue) {
 }
 
 /**
- * Returns a node that was added or removed whole, with whatever it holds
- * marked the same way so it can be opened, and counted the once
+ * Returns how much two items of a list are alike, from none to all: the
+ * share of the keys of two objects that hold the same, or of the items of
+ * two lists that sit at the same place. Two of a kind that cannot be walked
+ * are never alike, since one that changed reads better as taken out and
+ * put in
+ * @param {*} oldItem
+ * @param {*} newItem
+ * @returns {Number}
+ */
+function similarity(oldItem, newItem) {
+    const kind = kindOf(oldItem);
+    if (kind === "value" || kind !== kindOf(newItem)) {
+        return 0;
+    }
+
+    if (kind === "array") {
+        const total = Math.max(oldItem.length, newItem.length);
+        if (!total) {
+            return 1;
+        }
+        let equal = 0;
+        for (let i = 0; i < Math.min(oldItem.length, newItem.length); i += 1) {
+            if (stableStringify(oldItem[i]) === stableStringify(newItem[i])) {
+                equal += 1;
+            }
+        }
+        return equal / total;
+    }
+
+    const keys = new Set([ ...Object.keys(oldItem), ...Object.keys(newItem) ]);
+    if (!keys.size) {
+        return 1;
+    }
+    let equal = 0;
+    for (const key of keys) {
+        if (key in oldItem && key in newItem && stableStringify(oldItem[key]) === stableStringify(newItem[key])) {
+            equal += 1;
+        }
+    }
+    return equal / keys.size;
+}
+
+/**
+ * Returns a node that was added or removed whole, which counts the once
+ * whatever it holds
  * @param {String} key
  * @param {String} type
  * @param {*}      value
  * @returns {Object}
  */
 function createLeaf(key, type, value) {
-    const kind     = kindOf(value);
-    let   children = null;
-
-    if (kind === "object") {
-        children = Object.keys(value).map((name) => createLeaf(name, type, value[name]));
-    } else if (kind === "array") {
-        children = value.map((item, index) => createLeaf(`[${index}]`, type, item));
-    }
-
-    const node = createNode(key, type, type === "removed" ? value : undefined, type === "added" ? value : undefined, children);
-    node.counts = { added : 0, removed : 0, changed : 0 };
-    node.counts[type] = 1;
-    return node;
+    return createNode(key, type, type === "removed" ? value : undefined, type === "added" ? value : undefined, null);
 }
 
 /**

@@ -63,14 +63,17 @@ document.addEventListener("click", (e) => {
     case "map-change":
         Changes.goToChange(target);
         break;
+    case "pick-change":
+        Changes.pickChange(target);
+        break;
+    case "toggle-check":
+        Changes.toggleCheck(target);
+        break;
     case "copy-patch":
         Changes.copyPatch();
         break;
     case "expand-fold":
         Changes.expandFold(target);
-        break;
-    case "toggle-node":
-        Changes.toggleNode(target);
         break;
 
     // History Actions

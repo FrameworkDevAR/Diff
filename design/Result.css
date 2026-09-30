@@ -205,6 +205,12 @@
 .diff-number.diff-remove {
     color: var(--remove-color);
 }
+.diff-changed {
+    background-color: var(--change-soft);
+}
+.diff-number.diff-changed {
+    color: var(--change-color);
+}
 .diff-empty {
     background-color: var(--sunk-color);
     background-image: repeating-linear-gradient(
@@ -220,6 +226,34 @@
 }
 .diff-text.diff-remove mark {
     background-color: var(--remove-mark);
+}
+.diff-text.diff-changed mark {
+    background-color: var(--change-mark);
+}
+
+.diff-note {
+    display: inline-block;
+    margin-left: 16px;
+    padding: 0 8px;
+    border-radius: var(--pill-radius);
+    background-color: var(--card-color);
+    color: var(--light-color);
+    font-family: var(--main-font);
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px;
+    vertical-align: 1px;
+    white-space: nowrap;
+}
+.diff-add .diff-note {
+    color: var(--add-color);
+}
+.diff-remove .diff-note {
+    color: var(--remove-color);
+}
+.diff-changed .diff-note {
+    color: var(--change-color);
 }
 
 .hl-comment {
@@ -273,132 +307,4 @@
 .diff-fold > div:hover {
     background-color: var(--accent-soft);
     color: var(--accent-color);
-}
-
-
-
-/**
- * Tree
- */
-.tree {
-    padding: 4px 16px;
-    font-family: var(--mono-font);
-    font-size: 12px;
-    line-height: 24px;
-}
-.tree-children {
-    display: none;
-    margin-left: 14px;
-    padding-left: 12px;
-    border-left: 1px solid var(--border-color);
-}
-.tree-open > .tree-children {
-    display: block;
-}
-.tree-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    padding: 0 8px;
-    border-radius: 8px;
-    white-space: nowrap;
-}
-.tree-branch > .tree-row {
-    cursor: pointer;
-}
-.tree-branch > .tree-row:hover {
-    background-color: var(--hover-color);
-}
-.tree-row .arrow {
-    --arrow-color: var(--lighter-color);
-    --arrow-size: 14px;
-    --arrow-width: 11px;
-
-    margin-left: -4px;
-    rotate: 90deg;
-    transition: rotate 0.2s;
-}
-.tree-open > .tree-row .arrow {
-    rotate: 180deg;
-}
-
-.tree-key {
-    color: var(--main-color);
-    font-weight: 600;
-}
-.tree-key::after {
-    content: ":";
-    color: var(--lighter-color);
-    font-weight: 400;
-}
-.tree-summary {
-    color: var(--lighter-color);
-}
-.tree-badges {
-    display: flex;
-    gap: 4px;
-    margin-left: 4px;
-}
-
-.tree-value {
-    min-width: 0;
-    max-width: 480px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.tree-value.is-string {
-    color: var(--string-color);
-}
-.tree-value.is-number {
-    color: var(--number-color);
-}
-.tree-value.is-boolean,
-.tree-value.is-null {
-    color: var(--boolean-color);
-}
-.tree-value.is-object {
-    color: var(--lighter-color);
-}
-.tree-old,
-.tree-new {
-    padding: 0 6px;
-    border-radius: 6px;
-    line-height: 20px;
-}
-.tree-old {
-    background-color: var(--remove-soft);
-    text-decoration: line-through;
-    text-decoration-color: var(--remove-color);
-}
-.tree-new {
-    background-color: var(--add-soft);
-}
-.tree-to {
-    flex-shrink: 0;
-    width: 12px;
-    height: 12px;
-    background-color: var(--lighter-color);
-    mask-image: var(--chevron-icon);
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: 11px;
-    rotate: 90deg;
-}
-
-[data-type="added"] > .tree-row > .tree-key {
-    color: var(--add-color);
-}
-[data-type="removed"] > .tree-row > .tree-key {
-    color: var(--remove-color);
-}
-[data-type="changed"] > .tree-row > .tree-key {
-    color: var(--change-color);
-}
-[data-type="same"] > .tree-row {
-    opacity: 0.6;
-}
-.tree-node.current > .tree-row {
-    box-shadow: inset 3px 0 0 var(--accent-color), 0 0 0 1px var(--accent-soft);
-    background-color: var(--accent-soft);
 }

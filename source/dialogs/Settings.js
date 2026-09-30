@@ -8,7 +8,7 @@ import Utils   from "../core/Utils.js";
 const SWITCHES = [
     "ignoreSpace", "ignoreCase",
     "markWords", "highlightCode", "hideSame", "wrapLines",
-    "prettyJson", "sortKeys", "showSameValues",
+    "prettyJson", "sortKeys",
 ];
 
 

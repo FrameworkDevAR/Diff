@@ -219,6 +219,38 @@ export function buildUnified(compare, oldLines, newLines, options) {
 }
 
 /**
+ * Folds the rows the way the blocks of lines are folded: a long run of rows
+ * that did not change is hidden but for a few around each change
+ * @param {Object[]} rows
+ * @param {Object}   options
+ * @returns {Object[]}
+ */
+export function foldRows(rows, options) {
+    const blocks = [];
+    for (const row of rows) {
+        const type = row.kind === "same" ? "same" : "change";
+        const last = blocks[blocks.length - 1];
+        if (last && last.type === type) {
+            last.items.push(row);
+        } else {
+            blocks.push({ type, items : [ row ] });
+        }
+    }
+
+    const result = [];
+    forEachBlock(blocks, options, (block, index, from, to) => {
+        if (block.type === "fold") {
+            result.push({ kind : "fold", block : index, count : block.count });
+        } else if (block.type === "same") {
+            result.push(...block.items.slice(from, to));
+        } else {
+            result.push(...block.items);
+        }
+    });
+    return result;
+}
+
+/**
  * Walks the blocks, folding the middle of a long run of lines that did not
  * change when the options ask for it, and leaving a few around each change.
  * The first and last runs keep no lines on the side that has no change

@@ -3,11 +3,6 @@ import Utils   from "../core/Utils.js";
 
 
 
-// The kinds of node that are a change of their own, and are walked to
-const CHANGES = [ "added", "removed", "changed" ];
-
-
-
 /**
  * The Result, which draws what was found between the files
  */
@@ -36,6 +31,11 @@ export default class Result {
     #current = -1;
 
     layout = "split";
+
+    // Which kinds of difference the structure view shows, and how many of
+    // each there are
+    checks      = { missing : true, type : true, value : true };
+    checkCounts = { missing : 0, type : 0, value : 0 };
 
 
     /**
@@ -83,6 +83,7 @@ export default class Result {
         this.#compare = compare;
         this.#options = options;
         this.#expanded.clear();
+        this.checks = { missing : true, type : true, value : true };
         this.setLayout(layout);
     }
 
@@ -111,13 +112,16 @@ export default class Result {
 
         switch (this.layout) {
         case "unified":
-            html = renderUnified(this.#compare, this.#compare.unifiedRows(options));
+            html = renderUnified(this.#compare.unifiedRows(options), this.#compare.oldTokens, this.#compare.newTokens);
             break;
-        case "tree":
-            html = renderTree(this.#compare.tree, options);
+        case "tree": {
+            const data = this.#compare.structure(options, this.checks);
+            this.checkCounts = data.checks;
+            html = renderSplit(data.rows, data.oldTokens, data.newTokens);
             break;
+        }
         default:
-            html = renderSplit(this.#compare, this.#compare.splitRows(options));
+            html = renderSplit(this.#compare.splitRows(options), this.#compare.oldTokens, this.#compare.newTokens);
         }
 
         this.#scroll.innerHTML = html;
@@ -263,11 +267,25 @@ export default class Result {
     }
 
     /**
+     * Turns the given check the other way, and draws the structure again
+     * without the differences it hides, or with them back
+     * @param {String} name
+     * @returns {Void}
+     */
+    toggleCheck(name) {
+        const top = this.#scroll.scrollTop;
+        this.checks[name] = !this.checks[name];
+        this.render();
+        this.#scroll.scrollTop = top;
+    }
+
+    /**
      * Walks to the given change, and says which it is
-     * @param {Number} index
+     * @param {Number}   index
+     * @param {Boolean=} withScroll
      * @returns {Boolean}
      */
-    goToIndex(index) {
+    goToIndex(index, withScroll = true) {
         if (!this.#changes) {
             return false;
         }
@@ -281,16 +299,9 @@ export default class Result {
             element.classList.add("current");
         }
 
-        // A change inside a closed branch of the tree is opened up to
         const first = elements[0];
-        if (first instanceof HTMLElement) {
-            let branch = first.parentElement.closest(".tree-branch");
-            while (branch) {
-                branch.classList.add("tree-open");
-                branch = branch.parentElement.closest(".tree-branch");
-            }
-            const target = first.classList.contains("diff-row") ? first.firstElementChild : first;
-            target.scrollIntoView({ block : "center", behavior : "smooth" });
+        if (withScroll && first instanceof HTMLElement) {
+            first.firstElementChild.scrollIntoView({ block : "center", behavior : "smooth" });
         }
 
         this.#current = index;
@@ -312,38 +323,19 @@ export default class Result {
         this.#scroll.scrollTop = top;
         this.#hscroll.scrollLeft = left;
     }
-
-    /**
-     * Opens or closes the branch of the tree the row belongs to
-     * @param {HTMLElement} row
-     * @returns {Void}
-     */
-    toggleNode(row) {
-        const branch = row.closest(".tree-branch");
-        if (branch) {
-            branch.classList.toggle("tree-open");
-        }
-    }
 }
 
 
 
 /**
  * Says what a change is on the map: lines taken out, lines put in, both,
- * or a value of the tree that changed
+ * or a value that changed
  * @param {HTMLElement} element
  * @returns {String}
  */
 function mapKind(element) {
-    if (element.classList.contains("tree-node")) {
-        switch (element.dataset.type) {
-        case "added":
-            return "add";
-        case "removed":
-            return "remove";
-        default:
-            return "changed";
-        }
+    if (element.querySelector(":scope > .diff-text.diff-changed")) {
+        return "changed";
     }
     const hasRemove = element.querySelector(":scope > .diff-text.diff-remove") !== null;
     const hasAdd    = element.querySelector(":scope > .diff-text.diff-add") !== null;
@@ -355,19 +347,20 @@ function mapKind(element) {
 
 /**
  * Draws the rows of the side by side view
- * @param {Compare}  compare
- * @param {Object[]} rows
+ * @param {Object[]}   rows
+ * @param {Object[][]} oldTokens
+ * @param {Object[][]} newTokens
  * @returns {String}
  */
-function renderSplit(compare, rows) {
+function renderSplit(rows, oldTokens, newTokens) {
     const parts = [ "<div class=\"diff diff-split\">" ];
     for (const row of rows) {
         if (row.kind === "fold") {
             parts.push(renderFold(row));
             continue;
         }
-        const hunk = row.kind === "change" ? ` data-hunk="${row.hunk}"` : "";
-        parts.push(`<div class="diff-row diff-${row.kind}"${hunk}>${renderCell(row.left, compare.oldTokens)}${renderCell(row.right, compare.newTokens)}</div>`);
+        const hunk = row.kind === "change" ? ` data-hunk="${row.hunk}" data-action="pick-change"` : "";
+        parts.push(`<div class="diff-row diff-${row.kind}"${hunk}>${renderCell(row.left, oldTokens)}${renderCell(row.right, newTokens)}</div>`);
     }
     parts.push("</div>");
     return parts.join("");
@@ -375,22 +368,23 @@ function renderSplit(compare, rows) {
 
 /**
  * Draws the rows of the unified view
- * @param {Compare}  compare
- * @param {Object[]} rows
+ * @param {Object[]}   rows
+ * @param {Object[][]} oldTokens
+ * @param {Object[][]} newTokens
  * @returns {String}
  */
-function renderUnified(compare, rows) {
+function renderUnified(rows, oldTokens, newTokens) {
     const parts = [ "<div class=\"diff diff-unified\">" ];
     for (const row of rows) {
         if (row.kind === "fold") {
             parts.push(renderFold(row));
             continue;
         }
-        const hunk = row.kind === "change" ? ` data-hunk="${row.hunk}"` : "";
+        const hunk = row.kind === "change" ? ` data-hunk="${row.hunk}" data-action="pick-change"` : "";
         parts.push(`<div class="diff-row diff-${row.kind}"${hunk}>`);
         parts.push(`<div class="diff-number diff-${row.type}">${row.oldNumber || ""}</div>`);
         parts.push(`<div class="diff-number diff-${row.type}">${row.newNumber || ""}</div>`);
-        const tokens = row.type === "add" ? compare.newTokens[row.newNumber - 1] : compare.oldTokens[row.oldNumber - 1];
+        const tokens = row.type === "add" ? newTokens[row.newNumber - 1] : oldTokens[row.oldNumber - 1];
         parts.push(`<div class="diff-text diff-${row.type}">${renderText(row, tokens)}</div>`);
         parts.push("</div>");
     }
@@ -422,7 +416,8 @@ function renderCell(side, tokens) {
 
 /**
  * Draws the text of a line, colored the way its language is written, with
- * the words that changed marked when they were found. The two cut the line
+ * the words that changed marked when they were found, and the note that
+ * says what the change is after it. The colors and the marks cut the line
  * at their own places, so it is drawn piece by piece between every cut
  * @param {Object}    line
  * @param {?Object[]} tokens
@@ -430,10 +425,11 @@ function renderCell(side, tokens) {
  */
 function renderText(line, tokens) {
     const text = line.text || "";
-    if (!text) {
+    const note = line.note ? `<i class="diff-note">${Utils.escape(line.note)}</i>` : "";
+    if (!text && !note) {
         return "";
     }
-    return `<span class="diff-line">${renderPieces(text, line, tokens)}</span>`;
+    return `<span class="diff-line">${renderPieces(text, line, tokens)}${note}</span>`;
 }
 
 /**
@@ -489,126 +485,4 @@ function renderPieces(text, line, tokens) {
         parts.push("</mark>");
     }
     return parts.join("");
-}
-
-
-
-/**
- * Draws the tree of a JSON comparison
- * @param {Object} tree
- * @param {Object} options
- * @returns {String}
- */
-function renderTree(tree, options) {
-    const state = { hunk : 0, options };
-    const root  = tree.root;
-    const html  = root.children
-        ? root.children.map((child) => renderNode(child, state)).join("")
-        : renderNode({ ...root, key : "$" }, state);
-    return `<div class="tree">${html}</div>`;
-}
-
-/**
- * Draws a node of the tree and whatever it holds. What is inside a branch
- * that was added or removed whole went with it, and is not a change of its
- * own to walk to
- * @param {Object}   node
- * @param {Object}   state
- * @param {Boolean=} isInside
- * @returns {String}
- */
-function renderNode(node, state, isInside = false) {
-    if (node.type === "same" && !state.options.showSameValues) {
-        return "";
-    }
-
-    const hunk = CHANGES.includes(node.type) && !isInside ? ` data-hunk="${state.hunk++}"` : "";
-    const key  = `<span class="tree-key">${Utils.escape(node.key)}</span>`;
-
-    if (node.children) {
-        // A branch with a change in it is open, since the change is why the
-        // tree is looked at, and one that only holds the same is closed
-        const isOpen   = node.type === "nested" ? " tree-open" : "";
-        const value    = node.type === "removed" ? node.oldValue : node.newValue;
-        const isWhole  = isInside || node.type === "added" || node.type === "removed";
-        const children = node.children.map((child) => renderNode(child, state, isWhole)).join("");
-        return `<div class="tree-node tree-branch${isOpen}" data-type="${node.type}"${hunk}>` +
-            `<div class="tree-row" data-action="toggle-node"><i class="arrow"></i>${key}` +
-            `<span class="tree-summary">${renderSummary(value)}</span>${renderBadges(node)}</div>` +
-            `<div class="tree-children">${children}</div></div>`;
-    }
-
-    let values = "";
-    switch (node.type) {
-    case "added":
-        values = renderValue(node.newValue, "tree-new");
-        break;
-    case "removed":
-        values = renderValue(node.oldValue, "tree-old");
-        break;
-    case "changed":
-        values = `${renderValue(node.oldValue, "tree-old")}<i class="tree-to"></i>${renderValue(node.newValue, "tree-new")}`;
-        break;
-    default:
-        values = renderValue(node.newValue, "");
-    }
-    return `<div class="tree-node" data-type="${node.type}"${hunk}><div class="tree-row">${key}${values}</div></div>`;
-}
-
-/**
- * Draws a value as it is written in JSON, in the color of its kind
- * @param {*}      value
- * @param {String} className
- * @returns {String}
- */
-function renderValue(value, className) {
-    let kind = typeof value;
-    let text = "";
-
-    if (value === null) {
-        kind = "null";
-        text = "null";
-    } else if (kind === "object") {
-        return `<span class="tree-value is-object ${className}">${renderSummary(value)}</span>`;
-    } else if (kind === "string") {
-        text = `"${Utils.escape(value)}"`;
-    } else {
-        text = String(value);
-    }
-    return `<span class="tree-value is-${kind} ${className}">${text}</span>`;
-}
-
-/**
- * Says what a list or an object holds, without opening it
- * @param {*} value
- * @returns {String}
- */
-function renderSummary(value) {
-    if (Array.isArray(value)) {
-        return value.length === 1 ? "[ 1 item ]" : `[ ${value.length} items ]`;
-    }
-    const total = Object.keys(value).length;
-    return total === 1 ? "{ 1 key }" : `{ ${total} keys }`;
-}
-
-/**
- * Draws the counts of what changed inside a branch
- * @param {Object} node
- * @returns {String}
- */
-function renderBadges(node) {
-    if (node.type !== "nested") {
-        return "";
-    }
-    const parts = [];
-    if (node.counts.added) {
-        parts.push(`<b class="badge-added">+${node.counts.added}</b>`);
-    }
-    if (node.counts.removed) {
-        parts.push(`<b class="badge-removed">−${node.counts.removed}</b>`);
-    }
-    if (node.counts.changed) {
-        parts.push(`<b class="badge-changed">~${node.counts.changed}</b>`);
-    }
-    return `<span class="tree-badges">${parts.join("")}</span>`;
 }

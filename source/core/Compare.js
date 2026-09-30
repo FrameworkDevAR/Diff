@@ -1,5 +1,6 @@
-import { splitLines, compareLines, buildSplit, buildUnified, toPatch } from "../diff/Lines.js";
+import { splitLines, compareLines, buildSplit, buildUnified, foldRows, toPatch } from "../diff/Lines.js";
 import { compareJson, sortKeys } from "../diff/Json.js";
+import { buildStructure } from "../diff/Structure.js";
 import { detectLanguage, languageName, tokenize } from "../diff/Syntax.js";
 
 
@@ -135,6 +136,27 @@ export default class Compare {
     }
 
     /**
+     * Returns the rows of the structure view, which are both JSON values
+     * written out side by side from what they hold, the colors of each
+     * side's lines, and how many differences answer to each check. A
+     * difference of a check that is off is drawn as if it were none
+     * @param {Object} options
+     * @param {Object} checks
+     * @returns {{rows: Object[], oldTokens: Object[][], newTokens: Object[][], checks: Object}}
+     */
+    structure(options, checks) {
+        const data     = buildStructure(this.tree);
+        const language = options.highlightCode ? "json" : "";
+        const rows     = data.rows.map((row) => (row.check && !checks[row.check] ? plainRow(row) : row));
+        return {
+            rows      : foldRows(rows, options),
+            oldTokens : tokenize(data.oldLines, language),
+            newTokens : tokenize(data.newLines, language),
+            checks    : data.checks,
+        };
+    }
+
+    /**
      * Returns the changes as a patch
      * @returns {String}
      */
@@ -144,6 +166,16 @@ export default class Compare {
 }
 
 
+
+/**
+ * Returns the row as one that did not change, keeping only the lines
+ * @param {Object} row
+ * @returns {Object}
+ */
+function plainRow(row) {
+    const plain = (side) => (side.type === "empty" ? side : { type : "same", number : side.number, text : side.text });
+    return { kind : "same", left : plain(row.left), right : plain(row.right) };
+}
 
 /**
  * Reads the text as JSON, when it is some. A lone number or string is JSON

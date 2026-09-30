@@ -50,6 +50,26 @@ export function goToChange(target) {
 }
 
 /**
+ * Takes the change that was clicked as the one being looked at, without
+ * moving what is on screen
+ * @param {HTMLElement} target
+ * @returns {Void}
+ */
+export function pickChange(target) {
+    App.result.goToIndex(Number(target.dataset.hunk), false);
+}
+
+/**
+ * Shows or hides the differences of the given check in the structure
+ * @param {HTMLElement} target
+ * @returns {Void}
+ */
+export function toggleCheck(target) {
+    App.result.toggleCheck(target.dataset.check);
+    Files.updateStatus();
+}
+
+/**
  * Walks the changes by the given step, and says when there are none
  * @param {Number} delta
  * @returns {Boolean}
@@ -93,13 +113,4 @@ export function copyPatch() {
  */
 export function expandFold(target) {
     App.result.expandFold(Number(target.dataset.block));
-}
-
-/**
- * Opens or closes a branch of the tree
- * @param {HTMLElement} target
- * @returns {Void}
- */
-export function toggleNode(target) {
-    App.result.toggleNode(target);
 }

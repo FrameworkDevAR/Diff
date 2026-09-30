@@ -12,7 +12,6 @@ const DEFAULTS = {
     wrapLines      : false,
     prettyJson     : true,
     sortKeys       : false,
-    showSameValues : true,
 };
 
 

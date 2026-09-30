@@ -130,9 +130,9 @@ export function editFiles() {
 function setState(state) {
     document.body.classList.toggle("is-editing", state === "edit");
     document.body.classList.toggle("is-result", state === "result");
+    App.bar.setState(state);
     App.storage.setState(state);
 }
-    App.bar.setState(state);
 
 /**
  * Says what was found, beside the title: the kind of the files and the
@@ -147,13 +147,20 @@ export function updateStatus() {
 
     const parts = [ compare.kind ];
 
+    // The structure says how many differences answer to each check, and
+    // each is a switch that hides its differences
     if (App.result.layout === "tree" && compare.tree) {
-        const { added, removed, changed } = compare.tree;
-        if (!added && !removed && !changed) {
-            parts.push("no changes");
-        } else {
-            parts.push(`<b class="badge-added">+${added}</b><b class="badge-removed">−${removed}</b><b class="badge-changed">~${changed}</b>`);
+        const counts = App.result.checkCounts;
+        const checks = App.result.checks;
+        const names  = { missing : "missing", type : "types", value : "values" };
+        const badges = [];
+        for (const [ name, count ] of Object.entries(counts)) {
+            if (count) {
+                const label = count === 1 ? name : names[name];
+                badges.push(`<b class="badge-check${checks[name] ? "" : " is-off"}" data-action="toggle-check" data-check="${name}">${count} ${label}</b>`);
+            }
         }
+        parts.push(badges.length ? badges.join("") : "no changes");
     } else {
         const { added, removed, changes } = compare.lines;
         if (!changes) {
