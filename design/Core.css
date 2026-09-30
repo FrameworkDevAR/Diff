@@ -46,7 +46,7 @@ svg {
     top: calc(var(--menu-position) + var(--bar-height) + 12px);
     left: var(--menu-position);
     right: var(--menu-position);
-    bottom: var(--menu-position);
+    bottom: calc(var(--menu-position) * 2 + var(--bar-height));
     z-index: var(--z-main);
 }
 
