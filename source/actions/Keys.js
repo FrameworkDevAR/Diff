@@ -2,6 +2,7 @@ import * as App      from "../App.js";
 import * as Files    from "./Files.js";
 import * as Changes  from "./Changes.js";
 import * as Settings from "./Settings.js";
+import * as History  from "./History.js";
 
 
 
@@ -54,6 +55,22 @@ const SHORTCUTS = [
         action    : "copy-patch",
         text      : "<b>Copy</b> the changes as a patch",
         run       : Changes.copyPatch,
+    },
+    {
+        names   : [ "Mod", "S" ],
+        keys    : [ "s" ],
+        withKey : true,
+        action  : "open-save",
+        text    : "<b>Save</b> the diff in the history, with a name",
+        run     : History.openSave,
+    },
+    {
+        names   : [ "Mod", "O" ],
+        keys    : [ "o" ],
+        withKey : true,
+        action  : "open-history",
+        text    : "Open the <b>history</b> of the diffs",
+        run     : History.openHistory,
     },
     {
         names   : [ "Mod", "↓" ],
@@ -177,6 +194,17 @@ export function showKeys() {
 }
 
 /**
+ * Returns the keys that do the same as the given action, as this machine
+ * calls them, for a button that changes what it does
+ * @param {String} action
+ * @returns {String}
+ */
+export function keysOf(action) {
+    const shortcut = SHORTCUTS.find((one) => one.action === action);
+    return shortcut ? getNames(shortcut).join(" ") : "";
+}
+
+/**
  * Returns every shortcut there is, to be listed
  * @returns {Object[]}
  */
@@ -193,17 +221,6 @@ function getNames(shortcut) {
     return shortcut.names.map((name) => {
         switch (name) {
         case "Mod":
-/**
- * Returns the keys that do the same as the given action, as this machine
- * calls them, for a button that changes what it does
- * @param {String} action
- * @returns {String}
- */
-export function keysOf(action) {
-    const shortcut = SHORTCUTS.find((one) => one.action === action);
-    return shortcut ? getNames(shortcut).join(" ") : "";
-}
-
             return MOD_KEY;
         case "Shift":
             return SHIFT_KEY;

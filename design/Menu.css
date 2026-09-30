@@ -106,13 +106,30 @@
     height: 16px;
 }
 .header h1 {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     margin: 0;
+    padding: 4px 6px 4px 8px;
+    border-radius: 9px;
     color: var(--main-color);
     font-family: var(--title-font);
     font-size: 17px;
     font-weight: 600;
     line-height: 1;
     letter-spacing: -0.02em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.header h1:hover {
+    background-color: var(--hover-color);
+}
+.header-caret.header-caret {
+    --arrow-color: var(--lighter-color);
+    --arrow-size: 14px;
+    --arrow-width: 12px;
+
+    transform: rotate(180deg);
 }
 .header-status {
     display: flex;

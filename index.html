@@ -15,7 +15,10 @@
             <div class="header-logo">
                 <i class="svg-icon"></i>
             </div>
-            <h1>Diff</h1>
+            <h1 data-action="open-history" data-tip="Open the history" data-tip-bottom aria-label="Open the history">
+                <span>Diff</span>
+                <i class="arrow header-caret"></i>
+            </h1>
             <div class="header-status"></div>
         </header>
 
@@ -114,6 +117,8 @@
                 <i class="bar-line"></i>
                 <button class="bar-toggle bar-wrap" data-action="toggle-wrap" data-tip-bottom>Wrap</button>
                 <button class="bar-toggle bar-unfold" data-action="toggle-fold" data-tip-bottom>Unfold</button>
+                <i class="bar-line"></i>
+                <button class="bar-toggle bar-save" data-action="open-save" data-tip-bottom>Save</button>
             </div>
             <i class="bar-line"></i>
             <button class="btn btn-small btn-fill bar-state" data-action="compare-files" data-tip-bottom>Compare</button>
@@ -124,6 +129,50 @@
 
 
         <section>
+            <div class="backdrop history-dialog" data-dialog="history">
+                <dialog open>
+                    <h2>History</h2>
+                    <p class="history-empty">Nothing has been compared yet. Every diff lands here, and the ones you save stay for good.</p>
+                    <div class="history-scroll">
+                        <section class="history-section" data-section="pinned">
+                            <h3>Saved</h3>
+                            <ol class="history-list"></ol>
+                        </section>
+                        <section class="history-section" data-section="recent">
+                            <h3>Recent</h3>
+                            <ol class="history-list"></ol>
+                        </section>
+                    </div>
+                    <footer>
+                        <button class="btn" data-action="clear-recent">Clear the recent</button>
+                        <button class="btn" data-action="close-history">Close</button>
+                    </footer>
+                    <a href="#" class="close" data-action="close-history"></a>
+                </dialog>
+            </div>
+
+
+            <div class="backdrop" data-dialog="save">
+                <dialog open>
+                    <h2>Save the diff</h2>
+                    <p>A saved diff stays in the history for good, under its name.</p>
+                    <form>
+                        <div class="field" data-field="name">
+                            <label>Name</label>
+                            <input type="text" name="name" placeholder="What the diff is about" />
+                            <div class="error" data-error="name">You must name the diff.</div>
+                        </div>
+                        <footer>
+                            <button class="btn btn-fill dialog-btn" data-action="save-entry">Save</button>
+                            <button class="btn save-forget" data-action="forget-entry">Forget</button>
+                            <button class="btn" data-action="close-save">Cancel</button>
+                        </footer>
+                    </form>
+                    <a href="#" class="close" data-action="close-save"></a>
+                </dialog>
+            </div>
+
+
             <div class="backdrop settings-dialog" data-dialog="settings">
                 <dialog open>
                     <h2>Settings</h2>

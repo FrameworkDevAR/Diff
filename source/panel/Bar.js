@@ -29,6 +29,10 @@ const TOGGLES = {
         on  : { text : "Fold", tip : "Fold the lines that did not change" },
         off : { text : "Unfold", tip : "Show every line that did not change" },
     },
+    save : {
+        on  : { text : "Saved", tip : "Rename the saved diff, or let it go" },
+        off : { text : "Save", tip : "Save the diff in the history" },
+    },
 };
 
 
@@ -50,6 +54,8 @@ export default class Bar {
     /** @type {HTMLElement} */
     #unfold;
     /** @type {HTMLElement} */
+    #save;
+    /** @type {HTMLElement} */
     #state;
 
 
@@ -62,6 +68,7 @@ export default class Bar {
         this.#tree    = this.#tabs.querySelector("[data-layout='tree']");
         this.#wrap    = this.#element.querySelector(".bar-wrap");
         this.#unfold  = this.#element.querySelector(".bar-unfold");
+        this.#save    = this.#element.querySelector(".bar-save");
         this.#state   = this.#element.querySelector(".bar-state");
     }
 
@@ -89,6 +96,15 @@ export default class Bar {
     setToggles(values) {
         setToggle(this.#wrap, TOGGLES.wrap, Boolean(values.wrapLines));
         setToggle(this.#unfold, TOGGLES.unfold, !values.hideSame);
+    }
+
+    /**
+     * Says whether the pair being looked at is saved in the History
+     * @param {Boolean} isSaved
+     * @returns {Void}
+     */
+    setSaved(isSaved) {
+        setToggle(this.#save, TOGGLES.save, isSaved);
     }
 
     /**

@@ -141,6 +141,49 @@ input:focus, textarea:focus {
 
 
 
+.field {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 50px;
+    padding: 6px 12px;
+    text-align: left;
+    border: 1px solid var(--input-color);
+    border-radius: var(--input-radius);
+    transition: border-color 0.2s;
+}
+.field:hover {
+    border-color: var(--lighter-color);
+}
+.field:focus-within {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.field > label {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1;
+    color: var(--lighter-color);
+}
+.field > input[type="text"] {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+}
+
+.error {
+    display: none;
+    color: var(--remove-color);
+    font-size: 12px;
+}
+
+
+
 /**
  * Toggle Input
  */

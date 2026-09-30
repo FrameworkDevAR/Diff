@@ -1,5 +1,6 @@
-import * as App    from "../App.js";
-import { SIDES }   from "../panel/Inputs.js";
+import * as App     from "../App.js";
+import * as History from "./History.js";
+import { SIDES }    from "../panel/Inputs.js";
 import Compare     from "../core/Compare.js";
 import Utils       from "../core/Utils.js";
 
@@ -107,6 +108,7 @@ export function compareFiles() {
     App.bar.setLayout(layout, false);
     App.result.show(compare, App.configs.values, layout);
     updateStatus();
+    History.remember();
 }
 
 /**

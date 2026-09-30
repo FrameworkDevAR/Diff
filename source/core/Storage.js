@@ -30,6 +30,26 @@ export default class Storage {
     }
 
     /**
+     * Returns a stored Number
+     * @param {...*} items
+     * @returns {Number}
+     */
+    getNumber(...items) {
+        const defValue = items.pop();
+        return Number(localStorage.getItem(items.join("-"))) || defValue;
+    }
+
+    /**
+     * Saves a Number
+     * @param {...*} items
+     * @returns {Void}
+     */
+    setNumber(...items) {
+        const value = items.pop();
+        this.setString(...items, String(value));
+    }
+
+    /**
      * Returns a stored Object
      * @param {...String} keys
      * @returns {?Object}
@@ -112,6 +132,60 @@ export default class Storage {
      */
     setLayout(layout) {
         this.setString("layout", layout);
+    }
+
+
+
+    /**
+     * Returns the IDs of the entries of the History, newest first
+     * @returns {Number[]}
+     */
+    getHistory() {
+        return this.getData("history") || [];
+    }
+
+    /**
+     * Keeps the IDs of the entries of the History
+     * @param {Number[]} ids
+     * @returns {Void}
+     */
+    setHistory(ids) {
+        this.setData("history", ids);
+    }
+
+    /**
+     * Returns the ID the next entry of the History takes
+     * @returns {Number}
+     */
+    get nextHistory() {
+        return this.getNumber("nextHistory", 1);
+    }
+
+    /**
+     * Returns an entry of the History
+     * @param {Number} id
+     * @returns {?Object}
+     */
+    getEntry(id) {
+        return this.getData("entry", String(id));
+    }
+
+    /**
+     * Keeps an entry of the History, and says whether it fit
+     * @param {Object} entry
+     * @returns {Boolean}
+     */
+    setEntry(entry) {
+        return this.setString("entry", String(entry.id), JSON.stringify(entry));
+    }
+
+    /**
+     * Removes an entry of the History
+     * @param {Number} id
+     * @returns {Void}
+     */
+    removeEntry(id) {
+        localStorage.removeItem(`entry-${id}`);
     }
 
 

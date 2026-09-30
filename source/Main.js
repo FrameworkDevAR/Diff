@@ -2,6 +2,7 @@ import * as App      from "./App.js";
 import * as Files    from "./actions/Files.js";
 import * as Changes  from "./actions/Changes.js";
 import * as Settings from "./actions/Settings.js";
+import * as History  from "./actions/History.js";
 import * as Keys     from "./actions/Keys.js";
 import Utils         from "./core/Utils.js";
 
@@ -72,6 +73,35 @@ document.addEventListener("click", (e) => {
         Changes.toggleNode(target);
         break;
 
+    // History Actions
+    case "open-history":
+        History.openHistory();
+        break;
+    case "close-history":
+        App.historyDialog.close();
+        break;
+    case "open-entry":
+        History.openEntry(Number(target.dataset.entry));
+        break;
+    case "remove-entry":
+        History.removeEntry(Number(target.dataset.entry));
+        break;
+    case "clear-recent":
+        History.clearRecent();
+        break;
+    case "open-save":
+        History.openSave();
+        break;
+    case "close-save":
+        App.saver.close();
+        break;
+    case "save-entry":
+        History.saveEntry();
+        break;
+    case "forget-entry":
+        History.forgetEntry();
+        break;
+
     // Settings Actions
     case "toggle-wrap":
         Settings.toggleSetting("wrapLines");
@@ -107,6 +137,20 @@ document.addEventListener("click", (e) => {
 
     if (action) {
         e.preventDefault();
+    }
+});
+
+/**
+ * The Submit Event Handler. Enter in a field of a Dialog is the button of
+ * the Dialog, not the form going anywhere
+ */
+document.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (e.target instanceof HTMLElement) {
+        const button = e.target.querySelector(".btn-fill");
+        if (button instanceof HTMLElement) {
+            button.click();
+        }
     }
 });
 

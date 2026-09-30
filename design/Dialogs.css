@@ -85,6 +85,105 @@ dialog > form {
 
 
 /**
+ * History Dialog
+ */
+.history-dialog dialog {
+    box-sizing: border-box;
+    width: 520px;
+    max-height: min(640px, 100vh - 96px);
+}
+.history-empty {
+    display: none;
+}
+.history-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 0;
+    overflow-y: auto;
+}
+.history-section h3 {
+    margin: 0 0 6px 0;
+    color: var(--lighter-color);
+    font-family: var(--main-font);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    text-transform: uppercase;
+}
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.history-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: var(--input-radius);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.history-list li:hover {
+    background-color: var(--hover-color);
+}
+.history-text {
+    flex: 1;
+    min-width: 0;
+}
+.history-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.history-name i,
+.history-meta i {
+    flex-shrink: 0;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background-color: var(--lighter-color);
+    opacity: 0.6;
+}
+.history-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    color: var(--lighter-color);
+    font-family: var(--mono-font);
+    font-size: 10px;
+    white-space: nowrap;
+}
+.history-list .close {
+    --close-color: var(--dark-color);
+    --close-size: var(--btn-small-height);
+    --close-width: 10px;
+
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background-color: var(--card-color);
+}
+.history-list .close:hover {
+    --close-color: var(--remove-color);
+
+    border-color: var(--remove-color);
+    background-color: var(--remove-soft);
+}
+
+
+
+/**
  * Settings Dialog
  */
 .settings-dialog dialog {
