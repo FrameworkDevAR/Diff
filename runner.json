@@ -1,0 +1,9 @@
+{
+    "name": "Diff",
+    "scripts": {
+        "start" : {
+            "type" : "server",
+            "port" : "3022"
+        }
+    }
+}
