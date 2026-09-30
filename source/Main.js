@@ -73,6 +73,12 @@ document.addEventListener("click", (e) => {
         break;
 
     // Settings Actions
+    case "toggle-wrap":
+        Settings.toggleSetting("wrapLines");
+        break;
+    case "toggle-fold":
+        Settings.toggleSetting("hideSame");
+        break;
     case "open-settings":
         App.settings.open();
         break;

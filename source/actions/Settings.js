@@ -15,6 +15,31 @@ export function saveSettings() {
     }
 
     App.configs.set(data);
+    applySettings();
+}
+
+/**
+ * Turns the given Setting the other way, from the bar of the result, and
+ * shows the files the new way
+ * @param {String} name
+ * @returns {Boolean}
+ */
+export function toggleSetting(name) {
+    if (!App.compare) {
+        return false;
+    }
+    App.configs.set({ [name] : !App.configs.get(name) });
+    applySettings();
+    return true;
+}
+
+/**
+ * Compares the files again the way the Settings ask for, when they are
+ * being compared, and lights the buttons of the bar the same way
+ * @returns {Void}
+ */
+export function applySettings() {
+    App.bar.setToggles(App.configs.values);
     if (App.compare) {
         App.compare.run(App.configs.values);
         App.result.show(App.compare, App.configs.values, App.result.layout);

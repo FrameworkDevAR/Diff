@@ -1,6 +1,7 @@
 import * as App     from "../App.js";
-import * as Files   from "./Files.js";
-import * as Changes from "./Changes.js";
+import * as Files    from "./Files.js";
+import * as Changes  from "./Changes.js";
+import * as Settings from "./Settings.js";
 
 
 
@@ -87,6 +88,20 @@ const SHORTCUTS = [
         keys  : [ "3" ],
         text  : "Show the <b>structure</b> of the JSON",
         run   : () => Changes.setLayout("tree"),
+    },
+    {
+        names  : [ "W" ],
+        keys   : [ "w" ],
+        action : "toggle-wrap",
+        text   : "<b>Wrap</b> the long lines, or let them run",
+        run    : () => Settings.toggleSetting("wrapLines"),
+    },
+    {
+        names  : [ "U" ],
+        keys   : [ "u" ],
+        action : "toggle-fold",
+        text   : "<b>Unfold</b> every line that did not change, or fold them again",
+        run    : () => Settings.toggleSetting("hideSame"),
     },
     {
         names   : [ "Mod", "," ],

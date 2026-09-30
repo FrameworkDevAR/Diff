@@ -105,6 +105,12 @@ svg {
     background-color: transparent;
 }
 
+.btn.selected {
+    border-color: var(--accent-color);
+    background-color: var(--accent-soft);
+    color: var(--accent-color);
+}
+
 .btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;

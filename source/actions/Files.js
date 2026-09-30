@@ -103,6 +103,7 @@ export function compareFiles() {
 
     setState("result");
     App.bar.setJson(compare.isJson);
+    App.bar.setToggles(App.configs.values);
     App.bar.setLayout(layout, false);
     App.result.show(compare, App.configs.values, layout);
     updateStatus();

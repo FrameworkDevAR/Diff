@@ -12,14 +12,30 @@ export default class Bar {
     #tabs;
     /** @type {HTMLElement} */
     #tree;
+    /** @type {HTMLElement} */
+    #wrap;
+    /** @type {HTMLElement} */
+    #unfold;
 
 
     /**
      * Bar constructor
      */
     constructor() {
-        this.#tabs = document.querySelector(".bar .tabs");
-        this.#tree = this.#tabs.querySelector("[data-layout='tree']");
+        this.#tabs   = document.querySelector(".bar .tabs");
+        this.#tree   = this.#tabs.querySelector("[data-layout='tree']");
+        this.#wrap   = document.querySelector(".bar-wrap");
+        this.#unfold = document.querySelector(".bar-unfold");
+    }
+
+    /**
+     * Lights the buttons that stand for a Setting the way it is
+     * @param {Object} values
+     * @returns {Void}
+     */
+    setToggles(values) {
+        this.#wrap.classList.toggle("selected", Boolean(values.wrapLines));
+        this.#unfold.classList.toggle("selected", !values.hideSame);
     }
 
     /**
