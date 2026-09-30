@@ -92,13 +92,13 @@ export default class Result {
 
         switch (this.layout) {
         case "unified":
-            html = renderUnified(this.#compare.unifiedRows(options));
+            html = renderUnified(this.#compare, this.#compare.unifiedRows(options));
             break;
         case "tree":
             html = renderTree(this.#compare.tree, options);
             break;
         default:
-            html = renderSplit(this.#compare.splitRows(options));
+            html = renderSplit(this.#compare, this.#compare.splitRows(options));
         }
 
         this.#scroll.innerHTML = html;
@@ -196,10 +196,11 @@ export default class Result {
 
 /**
  * Draws the rows of the side by side view
+ * @param {Compare}  compare
  * @param {Object[]} rows
  * @returns {String}
  */
-function renderSplit(rows) {
+function renderSplit(compare, rows) {
     const parts = [ "<div class=\"diff diff-split\">" ];
     for (const row of rows) {
         if (row.kind === "fold") {
@@ -207,7 +208,7 @@ function renderSplit(rows) {
             continue;
         }
         const hunk = row.kind === "change" ? ` data-hunk="${row.hunk}"` : "";
-        parts.push(`<div class="diff-row diff-${row.kind}"${hunk}>${renderCell(row.left)}${renderCell(row.right)}</div>`);
+        parts.push(`<div class="diff-row diff-${row.kind}"${hunk}>${renderCell(row.left, compare.oldTokens)}${renderCell(row.right, compare.newTokens)}</div>`);
     }
     parts.push("</div>");
     return parts.join("");
@@ -215,10 +216,11 @@ function renderSplit(rows) {
 
 /**
  * Draws the rows of the unified view
+ * @param {Compare}  compare
  * @param {Object[]} rows
  * @returns {String}
  */
-function renderUnified(rows) {
+function renderUnified(compare, rows) {
     const parts = [ "<div class=\"diff diff-unified\">" ];
     for (const row of rows) {
         if (row.kind === "fold") {
@@ -229,7 +231,8 @@ function renderUnified(rows) {
         parts.push(`<div class="diff-row diff-${row.kind}"${hunk}>`);
         parts.push(`<div class="diff-number diff-${row.type}">${row.oldNumber || ""}</div>`);
         parts.push(`<div class="diff-number diff-${row.type}">${row.newNumber || ""}</div>`);
-        parts.push(`<div class="diff-text diff-${row.type}">${renderText(row)}</div>`);
+        const tokens = row.type === "add" ? compare.newTokens[row.newNumber - 1] : compare.oldTokens[row.oldNumber - 1];
+        parts.push(`<div class="diff-text diff-${row.type}">${renderText(row, tokens)}</div>`);
         parts.push("</div>");
     }
     parts.push("</div>");
@@ -248,28 +251,75 @@ function renderFold(row) {
 
 /**
  * Draws one side of a row of the side by side view
- * @param {Object} side
+ * @param {Object}     side
+ * @param {Object[][]} tokens
  * @returns {String}
  */
-function renderCell(side) {
+function renderCell(side, tokens) {
     const number = side.number || "";
-    return `<div class="diff-number diff-${side.type}">${number}</div><div class="diff-text diff-${side.type}">${renderText(side)}</div>`;
+    return `<div class="diff-number diff-${side.type}">${number}</div>` +
+        `<div class="diff-text diff-${side.type}">${renderText(side, side.number ? tokens[side.number - 1] : null)}</div>`;
 }
 
 /**
- * Draws the text of a line, with the words that changed marked when they
- * were found
- * @param {Object} line
+ * Draws the text of a line, colored the way its language is written, with
+ * the words that changed marked when they were found. The two cut the line
+ * at their own places, so it is drawn piece by piece between every cut
+ * @param {Object}    line
+ * @param {?Object[]} tokens
  * @returns {String}
  */
-function renderText(line) {
-    if (!line.parts) {
-        return Utils.escape(line.text || "");
+function renderText(line, tokens) {
+    const text = line.text || "";
+    if (!text) {
+        return "";
     }
-    return line.parts.map((part) => {
-        const text = Utils.escape(part.text);
-        return part.isMarked ? `<mark>${text}</mark>` : text;
-    }).join("");
+
+    // The marks are given as the parts of the line, one after the other, and
+    // are read as where each marked part starts and ends
+    const marks = [];
+    let   at    = 0;
+    for (const part of line.parts || []) {
+        if (part.isMarked) {
+            marks.push({ start : at, end : at + part.text.length });
+        }
+        at += part.text.length;
+    }
+
+    const cuts = new Set([ 0, text.length ]);
+    for (const one of [ ...marks, ...(tokens || []) ]) {
+        cuts.add(one.start);
+        cuts.add(one.end);
+    }
+    const places = [ ...cuts ].sort((a, b) => a - b);
+
+    const parts    = [];
+    let   isMarked = false;
+    let   mark     = 0;
+    let   token    = 0;
+    for (let i = 0; i < places.length - 1; i += 1) {
+        const start = places[i];
+        const end   = places[i + 1];
+        while (mark < marks.length && marks[mark].end <= start) {
+            mark += 1;
+        }
+        while (tokens && token < tokens.length && tokens[token].end <= start) {
+            token += 1;
+        }
+
+        const marked = mark < marks.length && marks[mark].start <= start;
+        const type   = tokens && token < tokens.length && tokens[token].start <= start ? tokens[token].type : "";
+        if (marked !== isMarked) {
+            parts.push(marked ? "<mark>" : "</mark>");
+            isMarked = marked;
+        }
+        const piece = Utils.escape(text.slice(start, end));
+        parts.push(type ? `<span class="hl-${type}">${piece}</span>` : piece);
+    }
+    if (isMarked) {
+        parts.push("</mark>");
+    }
+    return parts.join("");
 }
 
 

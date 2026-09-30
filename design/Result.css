@@ -155,6 +155,34 @@
     background-color: var(--remove-mark);
 }
 
+.hl-comment {
+    color: var(--lighter-color);
+    font-style: italic;
+}
+.hl-string {
+    color: var(--string-color);
+}
+.hl-number {
+    color: var(--number-color);
+}
+.hl-keyword,
+.hl-tag {
+    color: var(--keyword-color);
+}
+.hl-constant {
+    color: var(--boolean-color);
+}
+.hl-property,
+.hl-attribute {
+    color: var(--property-color);
+}
+.hl-function {
+    color: var(--function-color);
+}
+.hl-variable {
+    color: var(--variable-color);
+}
+
 .diff-row.current > .diff-number:first-child {
     box-shadow: inset 3px 0 0 var(--accent-color);
 }

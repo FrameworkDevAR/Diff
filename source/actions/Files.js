@@ -141,8 +141,7 @@ export function updateStatus() {
         return;
     }
 
-    const kind  = compare.isJson ? "JSON" : "Text";
-    const parts = [ kind ];
+    const parts = [ compare.kind ];
 
     if (App.result.layout === "tree" && compare.tree) {
         const { added, removed, changed } = compare.tree;

@@ -7,7 +7,7 @@ import Utils   from "../core/Utils.js";
 // What the dialog asks for, and how each answer is read back
 const SWITCHES = [
     "ignoreSpace", "ignoreCase",
-    "markWords", "hideSame", "wrapLines",
+    "markWords", "highlightCode", "hideSame", "wrapLines",
     "prettyJson", "sortKeys", "showSameValues",
 ];
 

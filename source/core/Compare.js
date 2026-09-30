@@ -1,5 +1,6 @@
 import { splitLines, compareLines, buildSplit, buildUnified, toPatch } from "../diff/Lines.js";
 import { compareJson, sortKeys } from "../diff/Json.js";
+import { detectLanguage, languageName, tokenize } from "../diff/Syntax.js";
 
 
 
@@ -18,10 +19,18 @@ export default class Compare {
     /** @type {?{value: *}} */
     #newJson = null;
 
+    /** @type {String} */
+    language = "";
+
     /** @type {String[]} */
     oldLines = [];
     /** @type {String[]} */
     newLines = [];
+
+    /** @type {Object[][]} */
+    oldTokens = [];
+    /** @type {Object[][]} */
+    newTokens = [];
 
     /** @type {?Object} */
     lines = null;
@@ -39,6 +48,19 @@ export default class Compare {
         this.newFile  = newFile;
         this.#oldJson = parseJson(oldFile.text);
         this.#newJson = parseJson(newFile.text);
+
+        // The language is read off the new file, which is the one being
+        // written, and off the old one when the new one says nothing
+        this.language = detectLanguage(newFile.name, newFile.text, this.isJson) ||
+            detectLanguage(oldFile.name, oldFile.text, this.isJson);
+    }
+
+    /**
+     * Returns what the files are called, by what they are written in
+     * @returns {String}
+     */
+    get kind() {
+        return languageName(this.language) || "Text";
     }
 
     /**
@@ -71,6 +93,10 @@ export default class Compare {
         this.newLines = splitLines(this.#textOf(this.#newJson, this.newFile.text, options));
         this.lines    = compareLines(this.oldLines, this.newLines, options);
         this.tree     = this.isJson ? compareJson(this.#oldJson.value, this.#newJson.value) : null;
+
+        const language = options.highlightCode ? this.language : "";
+        this.oldTokens = tokenize(this.oldLines, language);
+        this.newTokens = tokenize(this.newLines, language);
     }
 
     /**

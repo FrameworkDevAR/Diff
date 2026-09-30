@@ -7,6 +7,7 @@ const DEFAULTS = {
     ignoreSpace    : false,
     ignoreCase     : false,
     markWords      : true,
+    highlightCode  : true,
     hideSame       : true,
     wrapLines      : false,
     prettyJson     : true,
