@@ -1,0 +1,162 @@
+/**
+ * Inputs
+ */
+.inputs {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    height: 100%;
+}
+.is-editing .inputs {
+    display: grid;
+}
+
+.input {
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: 1px solid var(--border-color);
+    border-radius: var(--panel-radius);
+    background-color: var(--card-color);
+    box-shadow: var(--panel-shadow);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input:focus-within {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-soft), var(--panel-shadow);
+}
+
+
+
+/**
+ * Input Header
+ */
+.input header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 46px;
+    padding: 0 12px 0 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+.input-title {
+    flex-shrink: 0;
+    font-family: var(--title-font);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+.input-name {
+    flex: 1;
+    min-width: 0;
+    color: var(--lighter-color);
+    font-family: var(--mono-font);
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.input-kind {
+    display: none;
+    flex-shrink: 0;
+    padding: 0 8px;
+    border-radius: var(--pill-radius);
+    background-color: var(--accent-soft);
+    color: var(--accent-color);
+    font-family: var(--mono-font);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 18px;
+}
+.input.is-json .input-kind {
+    display: block;
+}
+.input-clear {
+    --close-color: var(--dark-color);
+    --close-size: var(--btn-tiny-height);
+    --close-width: 10px;
+
+    display: none;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background-color: var(--card-color);
+}
+.input-clear:hover {
+    --close-color: var(--accent-color);
+
+    border-color: var(--accent-color);
+    background-color: var(--accent-soft);
+}
+.input.has-text .input-clear {
+    display: block;
+}
+
+
+
+/**
+ * Input Text
+ */
+.input textarea {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+    font-family: var(--mono-font);
+    font-size: 12px;
+    line-height: var(--line-height);
+    white-space: pre;
+    tab-size: 4;
+    resize: none;
+    overflow: auto;
+}
+.input textarea::placeholder {
+    color: var(--lighter-color);
+}
+
+
+
+/**
+ * Input Drop
+ */
+.input-drop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background-color: var(--card-color);
+    pointer-events: none;
+    animation: diff-fade-in 0.2s ease both;
+}
+.input.dragging {
+    border-color: var(--accent-color);
+    border-style: dashed;
+}
+.input.dragging .input-drop {
+    display: flex;
+}
+.input-drop-box {
+    width: 46px;
+    height: 46px;
+    border: 1.5px dashed var(--accent-color);
+    border-radius: 12px;
+    opacity: 0.7;
+}
+.input-drop p {
+    margin: 0;
+    color: var(--accent-color);
+    font-size: 14px;
+    font-weight: 500;
+}

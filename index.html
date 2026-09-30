@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Diff</title>
+        <link rel="icon" href="icons/favicon.svg" type="image/svg+xml" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="design/Main.css" />
+        <script type="module" src="source/Main.js"></script>
+    </head>
+    <body class="light-mode is-editing">
+        <header class="header">
+            <div class="header-logo">
+                <i class="svg-icon"></i>
+            </div>
+            <h1>Diff</h1>
+            <div class="header-status"></div>
+        </header>
+
+        <main class="main">
+            <section class="inputs">
+                <article class="input" data-side="old">
+                    <header>
+                        <div class="input-title">Old</div>
+                        <div class="input-name"></div>
+                        <div class="input-kind">JSON</div>
+                        <a href="#" class="close input-clear" data-action="clear-file" data-tip="Clear the file" data-tip-top aria-label="Clear the file"></a>
+                        <button class="btn btn-tiny" data-action="upload-file">Upload</button>
+                    </header>
+                    <textarea name="old" placeholder="Paste the old file here, or drop it" spellcheck="false"></textarea>
+                    <div class="input-drop">
+                        <div class="input-drop-box"></div>
+                        <p>Drop the file here</p>
+                    </div>
+                </article>
+
+                <article class="input" data-side="new">
+                    <header>
+                        <div class="input-title">New</div>
+                        <div class="input-name"></div>
+                        <div class="input-kind">JSON</div>
+                        <a href="#" class="close input-clear" data-action="clear-file" data-tip="Clear the file" data-tip-top aria-label="Clear the file"></a>
+                        <button class="btn btn-tiny" data-action="upload-file">Upload</button>
+                    </header>
+                    <textarea name="new" placeholder="Paste the new file here, or drop it" spellcheck="false"></textarea>
+                    <div class="input-drop">
+                        <div class="input-drop-box"></div>
+                        <p>Drop the file here</p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="result">
+                <div class="result-scroll"></div>
+                <div class="result-empty">
+                    <div class="result-empty-box"></div>
+                    <div>
+                        <h2>The files are the same</h2>
+                        <p>Nothing changed between them, as they are compared.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div class="top">
+            <ol class="steps">
+                <li class="steps-prev" data-action="prev-change" data-tip="The change before" data-tip-bottom aria-label="The change before">
+                    <i class="arrow"></i>
+                </li>
+                <li class="steps-count">–/0</li>
+                <li class="steps-next" data-action="next-change" data-tip="The next change" data-tip-bottom aria-label="The next change">
+                    <i class="arrow"></i>
+                </li>
+            </ol>
+            <ol class="icons">
+                <li class="icon-copy" data-action="copy-patch" data-tip="Copy the changes as a patch" data-tip-bottom aria-label="Copy the changes as a patch">
+                    <i class="svg-icon"></i>
+                </li>
+                <li class="icon-swap" data-action="swap-files" data-tip="Swap the files" data-tip-bottom aria-label="Swap the files">
+                    <i class="svg-icon"></i>
+                </li>
+                <li class="icon-settings" data-action="open-settings" data-tip="Settings" data-tip-bottom aria-label="Settings">
+                    <i class="svg-icon"></i>
+                </li>
+            </ol>
+            <ol class="mode">
+                <li class="mode-light selected" data-action="mode-light" data-tip="Light mode" data-tip-bottom aria-label="Light mode">
+                    <i class="svg-icon"></i>
+                </li>
+                <li class="mode-system" data-action="mode-system" data-tip="Follow the system" data-tip-bottom aria-label="Follow the system">
+                    <i class="svg-icon"></i>
+                </li>
+                <li class="mode-dark" data-action="mode-dark" data-tip="Dark mode" data-tip-bottom aria-label="Dark mode">
+                    <i class="svg-icon"></i>
+                </li>
+            </ol>
+        </div>
+
+        <aside class="bar">
+            <div class="bar-edit">
+                <button class="btn btn-small" data-action="load-example">Example</button>
+                <button class="btn btn-small btn-fill" data-action="compare-files" data-tip="Compare the files" data-tip-top aria-label="Compare the files">Compare</button>
+            </div>
+            <div class="bar-result">
+                <nav class="tabs">
+                    <span class="tabs-mark"></span>
+                    <a href="#" class="selected" data-action="set-layout" data-layout="split">Side by side</a>
+                    <a href="#" data-action="set-layout" data-layout="unified">Unified</a>
+                    <a href="#" data-action="set-layout" data-layout="tree">Structure</a>
+                </nav>
+                <button class="btn btn-small" data-action="edit-files" data-tip="Edit the files" data-tip-top aria-label="Edit the files">Edit</button>
+            </div>
+        </aside>
+
+        <div class="toast"></div>
+        <div class="tooltip" popover="manual"></div>
+
+
+        <section>
+            <div class="backdrop settings-dialog" data-dialog="settings">
+                <dialog open>
+                    <h2>Settings</h2>
+                    <nav class="tabs">
+                        <span class="tabs-mark"></span>
+                        <a href="#" class="selected" data-action="settings-tab" data-tab="options">Options</a>
+                        <a href="#" data-action="settings-tab" data-tab="keys">Shortcuts</a>
+                    </nav>
+                    <div class="settings-scroll">
+                        <ol class="keys-list"></ol>
+                        <form>
+                            <h3>Comparing</h3>
+                            <label class="toggle-input" data-field="ignoreSpace">
+                                <input type="checkbox" role="switch" name="ignoreSpace" value="1" />
+                                <div>Ignore the spaces when comparing the lines</div>
+                            </label>
+                            <label class="toggle-input" data-field="ignoreCase">
+                                <input type="checkbox" role="switch" name="ignoreCase" value="1" />
+                                <div>Ignore the case of the letters</div>
+                            </label>
+
+                            <h3>Lines</h3>
+                            <label class="toggle-input" data-field="markWords">
+                                <input type="checkbox" role="switch" name="markWords" value="1" />
+                                <div>Mark the words that changed inside a line</div>
+                            </label>
+                            <label class="toggle-input" data-field="hideSame">
+                                <input type="checkbox" role="switch" name="hideSame" value="1" />
+                                <div>Hide the lines that did not change, but a few around each change</div>
+                            </label>
+                            <label class="toggle-input" data-field="wrapLines">
+                                <input type="checkbox" role="switch" name="wrapLines" value="1" />
+                                <div>Wrap the long lines</div>
+                            </label>
+
+                            <h3>JSON</h3>
+                            <label class="toggle-input" data-field="prettyJson">
+                                <input type="checkbox" role="switch" name="prettyJson" value="1" />
+                                <div>Write the JSON out again before comparing its lines</div>
+                            </label>
+                            <label class="toggle-input" data-field="sortKeys">
+                                <input type="checkbox" role="switch" name="sortKeys" value="1" />
+                                <div>Sort the keys of the JSON before comparing its lines</div>
+                            </label>
+                            <label class="toggle-input" data-field="showSameValues">
+                                <input type="checkbox" role="switch" name="showSameValues" value="1" />
+                                <div>Show the values that did not change in the structure</div>
+                            </label>
+                        </form>
+                    </div>
+                    <footer>
+                        <button class="btn btn-fill" data-action="save-settings">Save settings</button>
+                        <button class="btn" data-action="close-settings">Cancel</button>
+                    </footer>
+                    <a href="#" class="close" data-action="close-settings"></a>
+                </dialog>
+            </div>
+        </section>
+    </body>
+</html>
