@@ -17,12 +17,60 @@
 }
 .result-scroll {
     box-sizing: border-box;
+    position: relative;
     height: 100%;
     padding: 12px 0 72px 0;
     overflow: auto;
 }
 .result-same .result-scroll {
     display: none;
+}
+
+
+
+/**
+ * Result Map
+ */
+.result-map {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 14px;
+    pointer-events: none;
+    z-index: 2;
+}
+.result-same .result-map {
+    display: none;
+}
+.result-map i {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    min-height: 3px;
+    border-radius: 2px;
+    opacity: 0.8;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: left 0.15s, right 0.15s, opacity 0.15s;
+}
+.result-map i:hover,
+.result-map i.current {
+    left: 1px;
+    right: 1px;
+    opacity: 1;
+}
+.map-add {
+    background-color: var(--add-color);
+}
+.map-remove {
+    background-color: var(--remove-color);
+}
+.map-both {
+    background: linear-gradient(to right, var(--remove-color) 50%, var(--add-color) 50%);
+}
+.map-changed {
+    background-color: var(--change-color);
 }
 
 

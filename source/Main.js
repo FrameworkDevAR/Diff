@@ -59,6 +59,9 @@ document.addEventListener("click", (e) => {
     case "next-change":
         Changes.nextChange();
         break;
+    case "map-change":
+        Changes.goToChange(target);
+        break;
     case "copy-patch":
         Changes.copyPatch();
         break;

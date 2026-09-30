@@ -41,6 +41,15 @@ export function prevChange() {
 }
 
 /**
+ * Walks to the change a mark of the map stands for
+ * @param {HTMLElement} target
+ * @returns {Void}
+ */
+export function goToChange(target) {
+    App.result.goToIndex(Number(target.dataset.hunk));
+}
+
+/**
  * Walks the changes by the given step, and says when there are none
  * @param {Number} delta
  * @returns {Boolean}

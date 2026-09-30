@@ -19,6 +19,8 @@ export default class Result {
     #scroll;
     /** @type {HTMLElement} */
     #count;
+    /** @type {HTMLElement} */
+    #map;
 
     /** @type {?Compare} */
     #compare = null;
@@ -41,6 +43,11 @@ export default class Result {
         this.#element = document.querySelector(".result");
         this.#scroll  = document.querySelector(".result-scroll");
         this.#count   = document.querySelector(".steps-count");
+        this.#map     = document.querySelector(".result-map");
+
+        // The map is drawn from where the rows sit, which moves with the
+        // width of the result when the lines wrap
+        new ResizeObserver(() => this.drawMap()).observe(this.#scroll);
     }
 
     /**
@@ -108,6 +115,49 @@ export default class Result {
         this.#changes = new Set(hunks).size;
         this.#current = -1;
         this.setCount();
+        this.drawMap();
+    }
+
+    /**
+     * Draws every change as a mark down the side of the result, where it
+     * sits along the whole of it, the way an editor marks its scrollbar
+     * @returns {Void}
+     */
+    drawMap() {
+        const total = this.#scroll.scrollHeight;
+        if (!this.#compare || !total || this.#compare.isSame) {
+            this.#map.innerHTML = "";
+            return;
+        }
+
+        // A change is drawn as several rows, and the mark covers them all
+        const hunks = new Map();
+        for (const element of this.#scroll.querySelectorAll("[data-hunk]")) {
+            const box    = element.firstElementChild;
+            const index  = Number(element.dataset.hunk);
+            const top    = box.offsetTop;
+            const bottom = top + box.offsetHeight;
+            const kind   = mapKind(element);
+
+            const hunk = hunks.get(index);
+            if (!hunk) {
+                hunks.set(index, { top, bottom, kinds : new Set([ kind ]) });
+                continue;
+            }
+            hunk.top    = Math.min(hunk.top, top);
+            hunk.bottom = Math.max(hunk.bottom, bottom);
+            hunk.kinds.add(kind);
+        }
+
+        const parts = [];
+        for (const [ index, hunk ] of hunks) {
+            const kind    = hunk.kinds.size > 1 || hunk.kinds.has("both") ? "both" : [ ...hunk.kinds ][0];
+            const current = index === this.#current ? " current" : "";
+            const top     = (hunk.top / total * 100).toFixed(3);
+            const height  = ((hunk.bottom - hunk.top) / total * 100).toFixed(3);
+            parts.push(`<i class="map-${kind}${current}" data-action="map-change" data-hunk="${index}" style="top:${top}%;height:${height}%"></i>`);
+        }
+        this.#map.innerHTML = parts.join("");
     }
 
     /**
@@ -137,13 +187,25 @@ export default class Result {
         if (this.#current < 0) {
             index = delta > 0 ? 0 : this.#changes - 1;
         }
+        return this.goToIndex(index);
+    }
+
+    /**
+     * Walks to the given change, and says which it is
+     * @param {Number} index
+     * @returns {Boolean}
+     */
+    goToIndex(index) {
+        if (!this.#changes) {
+            return false;
+        }
         index = Math.min(Math.max(index, 0), this.#changes - 1);
 
-        for (const element of this.#scroll.querySelectorAll(".current")) {
+        for (const element of this.#element.querySelectorAll(".current")) {
             element.classList.remove("current");
         }
         const elements = this.#scroll.querySelectorAll(`[data-hunk="${index}"]`);
-        for (const element of elements) {
+        for (const element of [ ...elements, ...this.#map.querySelectorAll(`[data-hunk="${index}"]`) ]) {
             element.classList.add("current");
         }
 
@@ -193,6 +255,31 @@ export default class Result {
 }
 
 
+
+/**
+ * Says what a change is on the map: lines taken out, lines put in, both,
+ * or a value of the tree that changed
+ * @param {HTMLElement} element
+ * @returns {String}
+ */
+function mapKind(element) {
+    if (element.classList.contains("tree-node")) {
+        switch (element.dataset.type) {
+        case "added":
+            return "add";
+        case "removed":
+            return "remove";
+        default:
+            return "changed";
+        }
+    }
+    const hasRemove = element.querySelector(":scope > .diff-text.diff-remove") !== null;
+    const hasAdd    = element.querySelector(":scope > .diff-text.diff-add") !== null;
+    if (hasRemove && hasAdd) {
+        return "both";
+    }
+    return hasRemove ? "remove" : "add";
+}
 
 /**
  * Draws the rows of the side by side view
