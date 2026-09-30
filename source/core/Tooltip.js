@@ -87,14 +87,19 @@ export default class Tooltip {
      * @returns {Void}
      */
     place() {
-        const edge     = 8;
-        const space    = 13;
-        const style    = this.#element.style;
-        const bounds   = this.#target.getBoundingClientRect();
-        const width    = this.#element.offsetWidth;
-        const height   = this.#element.offsetHeight;
-        const onTop    = this.#target.hasAttribute("data-tip-top");
-        const onBottom = this.#target.hasAttribute("data-tip-bottom");
+        const edge       = 8;
+        const space      = 13;
+        const style      = this.#element.style;
+        const bounds     = this.#target.getBoundingClientRect();
+        const width      = this.#element.offsetWidth;
+        const height     = this.#element.offsetHeight;
+        const isVertical = this.#target.hasAttribute("data-tip-top") || this.#target.hasAttribute("data-tip-bottom");
+
+        // A bubble that goes over or under sits on the side with the room,
+        // which is under an Element of the top half and over one of the
+        // bottom half, since a bar moves between the two
+        const onTop      = isVertical && bounds.top + bounds.height / 2 > window.innerHeight / 2;
+        const onBottom   = isVertical && !onTop;
 
         this.#element.classList.toggle("at-top", onTop);
         this.#element.classList.toggle("at-bottom", onBottom);
@@ -102,7 +107,7 @@ export default class Tooltip {
         // Over or under the Element, kept inside the window, with the arrow
         // left on the Element however far the edge of the window pushed the
         // bubble along
-        if (onTop || onBottom) {
+        if (isVertical) {
             const middle = bounds.left + bounds.width / 2;
             const left   = this.between(middle - width / 2, edge, window.innerWidth - width - edge);
             const top    = onTop ? bounds.top - height - space : bounds.bottom + space;

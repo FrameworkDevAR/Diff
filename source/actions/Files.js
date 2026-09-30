@@ -130,6 +130,7 @@ function setState(state) {
     document.body.classList.toggle("is-result", state === "result");
     App.storage.setState(state);
 }
+    App.bar.setState(state);
 
 /**
  * Says what was found, beside the title: the kind of the files and the

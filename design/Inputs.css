@@ -75,20 +75,7 @@
     display: block;
 }
 .input-clear {
-    --close-color: var(--dark-color);
-    --close-size: var(--btn-tiny-height);
-    --close-width: 10px;
-
     display: none;
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    background-color: var(--card-color);
-}
-.input-clear:hover {
-    --close-color: var(--accent-color);
-
-    border-color: var(--accent-color);
-    background-color: var(--accent-soft);
 }
 .input.has-text .input-clear {
     display: block;

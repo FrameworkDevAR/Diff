@@ -26,7 +26,7 @@
                         <div class="input-title">Old</div>
                         <div class="input-name"></div>
                         <div class="input-kind">JSON</div>
-                        <a href="#" class="close input-clear" data-action="clear-file" data-tip="Clear the file" data-tip-top aria-label="Clear the file"></a>
+                        <button class="btn btn-tiny input-clear" data-action="clear-file">Clear</button>
                         <button class="btn btn-tiny" data-action="upload-file">Upload</button>
                     </header>
                     <textarea name="old" placeholder="Paste the old file here, or drop it" spellcheck="false"></textarea>
@@ -41,7 +41,7 @@
                         <div class="input-title">New</div>
                         <div class="input-name"></div>
                         <div class="input-kind">JSON</div>
-                        <a href="#" class="close input-clear" data-action="clear-file" data-tip="Clear the file" data-tip-top aria-label="Clear the file"></a>
+                        <button class="btn btn-tiny input-clear" data-action="clear-file">Clear</button>
                         <button class="btn btn-tiny" data-action="upload-file">Upload</button>
                     </header>
                     <textarea name="new" placeholder="Paste the new file here, or drop it" spellcheck="false"></textarea>
@@ -101,21 +101,22 @@
         </div>
 
         <aside class="bar">
-            <div class="bar-edit">
-                <button class="btn btn-small" data-action="load-example">Example</button>
-                <button class="btn btn-small btn-fill" data-action="compare-files" data-tip="Compare the files" data-tip-top aria-label="Compare the files">Compare</button>
+            <div class="bar-group bar-edit">
+                <button class="bar-toggle" data-action="load-example" data-tip="Put two files in to see it at work" data-tip-bottom aria-label="Put two files in to see it at work">Example</button>
             </div>
-            <div class="bar-result">
+            <div class="bar-group bar-result">
                 <nav class="tabs">
                     <span class="tabs-mark"></span>
                     <a href="#" class="selected" data-action="set-layout" data-layout="split">Side by side</a>
                     <a href="#" data-action="set-layout" data-layout="unified">Unified</a>
                     <a href="#" data-action="set-layout" data-layout="tree">Structure</a>
                 </nav>
-                <button class="btn btn-small bar-wrap" data-action="toggle-wrap" data-tip="Wrap the long lines" data-tip-top aria-label="Wrap the long lines">Wrap</button>
-                <button class="btn btn-small bar-unfold" data-action="toggle-fold" data-tip="Show every line that did not change" data-tip-top aria-label="Show every line that did not change">Unfold</button>
-                <button class="btn btn-small" data-action="edit-files" data-tip="Edit the files" data-tip-top aria-label="Edit the files">Edit</button>
+                <i class="bar-line"></i>
+                <button class="bar-toggle bar-wrap" data-action="toggle-wrap" data-tip-bottom>Wrap</button>
+                <button class="bar-toggle bar-unfold" data-action="toggle-fold" data-tip-bottom>Unfold</button>
             </div>
+            <i class="bar-line"></i>
+            <button class="btn btn-small btn-fill bar-state" data-action="compare-files" data-tip-bottom>Compare</button>
         </aside>
 
         <div class="toast"></div>

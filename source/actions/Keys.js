@@ -1,4 +1,4 @@
-import * as App     from "../App.js";
+import * as App      from "../App.js";
 import * as Files    from "./Files.js";
 import * as Changes  from "./Changes.js";
 import * as Settings from "./Settings.js";
@@ -193,6 +193,17 @@ function getNames(shortcut) {
     return shortcut.names.map((name) => {
         switch (name) {
         case "Mod":
+/**
+ * Returns the keys that do the same as the given action, as this machine
+ * calls them, for a button that changes what it does
+ * @param {String} action
+ * @returns {String}
+ */
+export function keysOf(action) {
+    const shortcut = SHORTCUTS.find((one) => one.action === action);
+    return shortcut ? getNames(shortcut).join(" ") : "";
+}
+
             return MOD_KEY;
         case "Shift":
             return SHIFT_KEY;
