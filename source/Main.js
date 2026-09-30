@@ -163,6 +163,16 @@ document.querySelector(".result-scroll").addEventListener("scroll", () => {
 });
 
 /**
+ * The Wheel Event Handler. The result only scrolls down on its own, so a
+ * wheel that goes sideways is handed to the bar that moves the lines along
+ */
+document.querySelector(".result-scroll").addEventListener("wheel", (e) => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        App.result.scrollBy(e.deltaX);
+    }
+}, { passive : true });
+
+/**
  * The Key Event Handler
  */
 document.addEventListener("keydown", (e) => {

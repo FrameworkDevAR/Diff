@@ -21,6 +21,8 @@ export default class Result {
     #count;
     /** @type {HTMLElement} */
     #map;
+    /** @type {HTMLElement} */
+    #hscroll;
 
     /** @type {?Compare} */
     #compare = null;
@@ -44,10 +46,20 @@ export default class Result {
         this.#scroll  = document.querySelector(".result-scroll");
         this.#count   = document.querySelector(".steps-count");
         this.#map     = document.querySelector(".result-map");
+        this.#hscroll = document.querySelector(".result-hscroll");
 
-        // The map is drawn from where the rows sit, which moves with the
-        // width of the result when the lines wrap
-        new ResizeObserver(() => this.drawMap()).observe(this.#scroll);
+        // The lines are moved along together by the one bar, since a side
+        // scrolled on its own would leave the other behind
+        this.#hscroll.addEventListener("scroll", () => {
+            this.#scroll.style.setProperty("--shift-x", `${this.#hscroll.scrollLeft}px`);
+        });
+
+        // The map and the bar follow the width of the result, which moves
+        // the rows when the lines wrap and how much of a line is seen
+        new ResizeObserver(() => {
+            this.drawMap();
+            this.setWidth();
+        }).observe(this.#scroll);
     }
 
     /**
@@ -81,9 +93,9 @@ export default class Result {
      */
     setLayout(layout) {
         this.layout = layout;
+        this.#hscroll.scrollLeft = 0;
         this.render();
-        this.#scroll.scrollTop  = 0;
-        this.#scroll.scrollLeft = 0;
+        this.#scroll.scrollTop = 0;
     }
 
     /**
@@ -115,7 +127,67 @@ export default class Result {
         this.#changes = new Set(hunks).size;
         this.#current = -1;
         this.setCount();
+        this.setWidth();
         this.drawMap();
+    }
+
+    /**
+     * Sizes the bar that moves the lines along by how much of the longest
+     * one runs past its cell, or takes the bar away when every line fits
+     * or the lines wrap
+     * @returns {Void}
+     */
+    setWidth() {
+        const cell = this.#scroll.querySelector(".diff-text");
+        if (!this.#compare || !cell || this.#options.wrapLines || this.layout === "tree") {
+            this.#hscroll.classList.remove("visible");
+            this.#scroll.style.setProperty("--shift-x", "0px");
+            return;
+        }
+
+        // The lines are measured by their longest, in the width of one
+        // character, which is the same for all of them in a mono font
+        let longest = 0;
+        for (const lines of [ this.#compare.oldLines, this.#compare.newLines ]) {
+            for (const line of lines) {
+                longest = Math.max(longest, line.replace(/\t/g, "    ").length);
+            }
+        }
+
+        const probe = document.createElement("span");
+        probe.className   = "diff-line";
+        probe.textContent = "M".repeat(100);
+        cell.appendChild(probe);
+        const charWidth = probe.getBoundingClientRect().width / 100;
+        probe.remove();
+
+        const padding = cell.offsetWidth - cell.clientWidth + 32;
+        const visible = cell.offsetWidth - padding;
+        const needed  = Math.ceil(longest * charWidth);
+        if (needed <= visible) {
+            this.#hscroll.classList.remove("visible");
+            this.#hscroll.scrollLeft = 0;
+            this.#scroll.style.setProperty("--shift-x", "0px");
+            return;
+        }
+
+        this.#hscroll.classList.add("visible");
+        this.#hscroll.firstElementChild.setAttribute("style", `width:${this.#hscroll.clientWidth + needed - visible}px`);
+        this.#scroll.style.setProperty("--shift-x", `${this.#hscroll.scrollLeft}px`);
+    }
+
+    /**
+     * Moves the lines along by the given amount, for a wheel that goes
+     * sideways over the result
+     * @param {Number} delta
+     * @returns {Boolean}
+     */
+    scrollBy(delta) {
+        if (!this.#hscroll.classList.contains("visible")) {
+            return false;
+        }
+        this.#hscroll.scrollLeft += delta;
+        return true;
     }
 
     /**
@@ -233,12 +305,12 @@ export default class Result {
      */
     expandFold(block) {
         const top  = this.#scroll.scrollTop;
-        const left = this.#scroll.scrollLeft;
+        const left = this.#hscroll.scrollLeft;
 
         this.#expanded.add(block);
         this.render();
-        this.#scroll.scrollTop  = top;
-        this.#scroll.scrollLeft = left;
+        this.#scroll.scrollTop = top;
+        this.#hscroll.scrollLeft = left;
     }
 
     /**
@@ -361,7 +433,17 @@ function renderText(line, tokens) {
     if (!text) {
         return "";
     }
+    return `<span class="diff-line">${renderPieces(text, line, tokens)}</span>`;
+}
 
+/**
+ * Draws the pieces of a line, between every cut of the colors and the marks
+ * @param {String}    text
+ * @param {Object}    line
+ * @param {?Object[]} tokens
+ * @returns {String}
+ */
+function renderPieces(text, line, tokens) {
     // The marks are given as the parts of the line, one after the other, and
     // are read as where each marked part starts and ends
     const marks = [];

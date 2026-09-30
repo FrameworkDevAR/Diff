@@ -22,6 +22,24 @@
     padding: 12px 0 72px 0;
     overflow: auto;
 }
+
+.result-hscroll {
+    position: absolute;
+    left: 0;
+    right: 14px;
+    bottom: 0;
+    display: none;
+    height: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 2;
+}
+.result-hscroll > div {
+    height: 1px;
+}
+.result-hscroll.visible {
+    display: block;
+}
 .result-same .result-scroll {
     display: none;
 }
@@ -133,17 +151,9 @@
     line-height: var(--line-height);
 }
 .diff-split {
-    grid-template-columns:
-        var(--gutter) minmax(calc(50% - var(--gutter)), max-content)
-        var(--gutter) minmax(calc(50% - var(--gutter)), max-content);
-}
-.diff-unified {
-    grid-template-columns: var(--gutter) var(--gutter) minmax(calc(100% - var(--gutter) * 2), max-content);
-}
-.wrap-lines .diff-split {
     grid-template-columns: var(--gutter) minmax(0, 1fr) var(--gutter) minmax(0, 1fr);
 }
-.wrap-lines .diff-unified {
+.diff-unified {
     grid-template-columns: var(--gutter) var(--gutter) minmax(0, 1fr);
 }
 .diff-row {
@@ -161,14 +171,24 @@
 }
 .diff-text {
     box-sizing: border-box;
+    min-width: 0;
     min-height: var(--line-height);
     padding: 0 16px;
     white-space: pre;
     tab-size: 4;
+    overflow: hidden;
+}
+.diff-line {
+    display: inline-block;
+    translate: calc(0px - var(--shift-x, 0px));
 }
 .wrap-lines .diff-text {
     white-space: pre-wrap;
     word-break: break-all;
+}
+.wrap-lines .diff-line {
+    display: inline;
+    translate: none;
 }
 .diff-split .diff-text:nth-child(2) {
     border-right: 1px solid var(--border-color);
