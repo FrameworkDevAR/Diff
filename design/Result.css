@@ -9,7 +9,6 @@
     border: 1px solid var(--border-color);
     border-radius: var(--panel-radius);
     background-color: var(--card-color);
-    box-shadow: var(--panel-shadow);
     overflow: hidden;
 }
 .is-result .result {
