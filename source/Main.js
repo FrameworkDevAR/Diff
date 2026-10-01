@@ -9,14 +9,15 @@ import Utils         from "./core/Utils.js";
 
 
 /**
- * Puts everything back the way it was left
+ * Puts everything back the way it was left, unless the address asks for a
+ * diff, which is then the one to show
  * @returns {Void}
  */
 function start() {
     App.configs.apply();
     Keys.showKeys();
     Settings.restoreTheme();
-    Files.start();
+    Files.openAddress(true);
 }
 
 
@@ -224,6 +225,15 @@ document.querySelector(".result-scroll").addEventListener("wheel", (e) => {
         App.result.scrollBy(e.deltaX);
     }
 }, { passive : true });
+
+/**
+ * The Address Event Handler. Going back and forward, and a link opened
+ * while the page is already open, change the address under the page, which
+ * then shows what the new one asks for
+ */
+window.addEventListener("popstate", () => {
+    Files.openAddress();
+});
 
 /**
  * The Key Event Handler

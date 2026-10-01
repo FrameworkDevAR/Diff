@@ -1,6 +1,5 @@
 import * as App   from "../App.js";
 import * as Files from "./Files.js";
-import { SIDES }  from "../panel/Inputs.js";
 
 
 
@@ -21,6 +20,7 @@ export function remember() {
     const entry = App.history.remember(App.compare.oldFile, App.compare.newFile, App.compare);
     currentID = entry.id;
     App.bar.setSaved(entry.isPinned);
+    Files.setAddress(`#h=${entry.id}`);
 }
 
 /**
@@ -44,12 +44,7 @@ export function openEntry(id) {
     }
 
     App.historyDialog.close();
-    App.inputs.setFile("old", { name : entry.oldName, text : entry.oldText });
-    App.inputs.setFile("new", { name : entry.newName, text : entry.newText });
-    for (const side of SIDES) {
-        Files.keepFile(side);
-    }
-    Files.compareFiles();
+    Files.showFiles({ name : entry.oldName, text : entry.oldText }, { name : entry.newName, text : entry.newText });
 }
 
 /**

@@ -2,6 +2,7 @@ import * as App     from "../App.js";
 import * as History from "./History.js";
 import { SIDES }    from "../panel/Inputs.js";
 import Compare     from "../core/Compare.js";
+import Link        from "../core/Link.js";
 import Utils       from "../core/Utils.js";
 
 
@@ -59,6 +60,9 @@ const EXAMPLE = {
 // The timers that hold each file back from being kept on every keystroke
 const timers = { old : 0, new : 0 };
 
+// True while the address is being followed rather than led
+let isMoving = false;
+
 
 
 /**
@@ -75,6 +79,114 @@ export function start() {
         compareFiles();
     } else {
         editFiles();
+    }
+}
+
+/**
+ * Shows what the address asks for: the diff of the History it names, the
+ * files a link carries, or else what was left. It is what runs when the
+ * page opens and when going back and forward, where the address is already
+ * the one to be at and so is only ever corrected, never added to
+ * @param {Boolean=} isStart
+ * @returns {Promise}
+ */
+export async function openAddress(isStart = false) {
+    isMoving = true;
+    try {
+        if (openEntry() || await openLink()) {
+            return;
+        }
+        if (isStart) {
+            start();
+        } else {
+            editFiles();
+        }
+    } finally {
+        isMoving = false;
+    }
+}
+
+/**
+ * Puts the files of the diff the address names in and compares them, and
+ * says whether it names one that is still in the History
+ * @returns {Boolean}
+ */
+function openEntry() {
+    const match = window.location.hash.match(/^#h=(\d+)$/);
+    if (!match) {
+        return false;
+    }
+
+    const entry = App.history.get(Number(match[1]));
+    if (!entry) {
+        App.toast.show("That diff is not in the history anymore");
+        setAddress("");
+        return false;
+    }
+    showFiles({ name : entry.oldName, text : entry.oldText }, { name : entry.newName, text : entry.newText });
+    return true;
+}
+
+/**
+ * Puts the files of the link in the address in and compares them, and says
+ * whether there were any. The diff is then kept in the History, and its
+ * address there takes the place of the link
+ * @returns {Promise<Boolean>}
+ */
+async function openLink() {
+    if (window.location.hash.length < 2) {
+        return false;
+    }
+
+    let link = null;
+    try {
+        link = await Link.read(window.location.hash);
+    } catch (error) {
+        App.toast.show(error.message);
+    }
+    if (!link) {
+        setAddress("");
+        return false;
+    }
+
+    if (link.layout) {
+        App.storage.setLayout(link.layout);
+    }
+    showFiles(link.old, link.new);
+    return true;
+}
+
+/**
+ * Puts the two files in and compares them
+ * @param {{name: String, text: String}} oldFile
+ * @param {{name: String, text: String}} newFile
+ * @returns {Void}
+ */
+export function showFiles(oldFile, newFile) {
+    App.inputs.setFile("old", oldFile);
+    App.inputs.setFile("new", newFile);
+    for (const side of SIDES) {
+        keepFile(side);
+    }
+    compareFiles();
+}
+
+/**
+ * Takes the address to what is after its # for the diff being looked at,
+ * or to none when the files are being edited. Each one is a step to go
+ * back to, unless it is where a step back or forward has just led
+ * @param {String} hash
+ * @returns {Void}
+ */
+export function setAddress(hash) {
+    if (window.location.hash === hash) {
+        return;
+    }
+    const address = window.location.pathname + window.location.search + hash;
+    if (isMoving) {
+        window.history.replaceState(null, "", address);
+    } else {
+        window.history.pushState(null, "", address);
     }
 }
 
@@ -117,6 +229,7 @@ export function compareFiles() {
  */
 export function editFiles() {
     setState("edit");
+    setAddress("");
     App.header.setStatus("Paste or drop the two files to compare");
     App.inputs.focus(App.inputs.emptySide);
 }
