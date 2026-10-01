@@ -3,6 +3,11 @@ import Utils   from "../core/Utils.js";
 
 
 
+// The least the thumb of the map is tall, so there is always some to hold
+const MIN_VIEW = 28;
+
+
+
 /**
  * The Result, which draws what was found between the files
  */
@@ -52,6 +57,15 @@ export default class Result {
         // scrolled on its own would leave the other behind
         this.#hscroll.addEventListener("scroll", () => {
             this.#scroll.style.setProperty("--shift-x", `${this.#hscroll.scrollLeft}px`);
+        });
+
+        // The map stands where the scrollbar would, so it also shows which
+        // part of the result is seen, and that part can be dragged along
+        this.#scroll.addEventListener("scroll", () => {
+            this.drawView();
+        });
+        this.#map.addEventListener("pointerdown", (e) => {
+            this.#startDrag(e);
         });
 
         // The map and the bar follow the width of the result, which moves
@@ -205,6 +219,7 @@ export default class Result {
             this.#map.innerHTML = "";
             return;
         }
+        const view = '<b class="map-view"></b>';
 
         // A change is drawn as several rows, and the mark covers them all
         const hunks = new Map();
@@ -233,7 +248,66 @@ export default class Result {
             const height  = ((hunk.bottom - hunk.top) / total * 100).toFixed(3);
             parts.push(`<i class="map-${kind}${current}" data-action="map-change" data-hunk="${index}" style="top:${top}%;height:${height}%"></i>`);
         }
-        this.#map.innerHTML = parts.join("");
+        this.#map.innerHTML = view + parts.join("");
+        this.drawView();
+    }
+
+    /**
+     * Draws the part of the result that is seen on the map, as the thumb
+     * of a scrollbar, which is not there when all of it is seen
+     * @returns {Void}
+     */
+    drawView() {
+        const view = this.#map.querySelector(".map-view");
+        if (!(view instanceof HTMLElement)) {
+            return;
+        }
+        const total  = this.#scroll.scrollHeight;
+        const height = this.#scroll.clientHeight;
+        if (height >= total) {
+            view.style.display = "none";
+            return;
+        }
+
+        // The thumb is never too small to take hold of, so it moves along
+        // what is left of the map rather than along all of it
+        const track = this.#map.clientHeight;
+        const size  = Math.max(MIN_VIEW, height / total * track);
+        const top   = this.#scroll.scrollTop / (total - height) * (track - size);
+
+        view.style.display = "block";
+        view.style.top     = `${top.toFixed(1)}px`;
+        view.style.height  = `${size.toFixed(1)}px`;
+    }
+
+    /**
+     * Moves the result along with the part of the map that is dragged
+     * @param {PointerEvent} event
+     * @returns {Void}
+     */
+    #startDrag(event) {
+        const view = event.target;
+        if (!(view instanceof HTMLElement) || !view.classList.contains("map-view")) {
+            return;
+        }
+        event.preventDefault();
+
+        const startY   = event.clientY;
+        const startTop = this.#scroll.scrollTop;
+        const ratio    = (this.#scroll.scrollHeight - this.#scroll.clientHeight) / (this.#map.clientHeight - view.offsetHeight);
+        const onMove   = (e) => {
+            this.#scroll.scrollTop = startTop + (e.clientY - startY) * ratio;
+        };
+        const onEnd    = () => {
+            view.classList.remove("dragging");
+            view.removeEventListener("pointermove", onMove);
+        };
+
+        view.classList.add("dragging");
+        view.setPointerCapture(event.pointerId);
+        view.addEventListener("pointermove", onMove);
+        view.addEventListener("pointerup", onEnd, { once : true });
+        view.addEventListener("pointercancel", onEnd, { once : true });
     }
 
     /**

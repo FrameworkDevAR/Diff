@@ -20,6 +20,7 @@
     height: 100%;
     padding: 12px 0 16px 0;
     overflow: auto;
+    scrollbar-width: none;
 }
 
 .result-hscroll {
@@ -59,6 +60,25 @@
 }
 .result-same .result-map {
     display: none;
+}
+.result-map .map-view {
+    display: none;
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    border-radius: var(--pill-radius);
+    background-color: color-mix(in srgb, var(--main-color) 16%, transparent);
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
+    transition: background-color 0.15s;
+}
+.result-map .map-view:hover,
+.result-map .map-view.dragging {
+    background-color: color-mix(in srgb, var(--main-color) 30%, transparent);
+}
+.result-map .map-view.dragging {
+    cursor: grabbing;
 }
 .result-map i {
     position: absolute;
