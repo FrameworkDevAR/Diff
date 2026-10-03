@@ -13,6 +13,7 @@ import Configs       from "./core/Configs.js";
 import Mode          from "./core/Mode.js";
 import Toast         from "./core/Toast.js";
 import Tooltip       from "./core/Tooltip.js";
+import Apps          from "./core/Apps.js";
 
 
 
@@ -23,6 +24,7 @@ export const configs       = new Configs(storage);
 export const mode          = new Mode();
 export const toast         = new Toast();
 export const tooltip       = new Tooltip();
+export const apps          = new Apps("diff", ".header-logo");
 export const settings      = new Settings(configs, Keys.getShortcuts());
 export const historyDialog = new HistoryDialog();
 export const saver         = new Saver();
